@@ -4,8 +4,20 @@ use warnings;
 
 use Text::Levenshtein 'distance';
 use Data::Dumper;
-
+use Data::Printer;
 use Tree::VP;
+$Data::Dumper::Sortkeys=1;
+
+sub hamming_distance {
+    my ($str1, $str2) = @_;
+    my $d = 0;
+    for (0..length($str1)-1) {
+        if (substr($str1, $_, 1) ne substr($str2, $_, 1)) {
+            $d += 1;
+        }
+    }
+    return $d;
+}
 
  my @str = (
      '0000',
@@ -29,7 +41,7 @@ use Tree::VP;
 
  my $t = Tree::VP->new(
      nodes => \@str,
-     distance => \&distance,
+     distance => \&hamming_distance,
 );
 
-print Dumper($t);
+print Dumper( $t );

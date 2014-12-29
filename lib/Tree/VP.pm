@@ -29,13 +29,13 @@ sub BUILD {
         my @dist = sort { $a->[1] <=> $b->[1] } map {[$_, $self->distance->($_, $vp)]} @$nodes;
         my $median = $dist[@dist/2]->[1];
 
-        $self->dist_min( $dist[0][1] );
-        $self->dist_max( $dist[$#dist][1] );
+        $self->dist_min( $dist[0]->[1] );
+        $self->dist_max( $dist[@dist-1]->[1] );
         $self->dist_median($median);
 
         my (@left, @right);
         for (@dist) {
-            if ($_->[1] <= $median) {
+            if ($_->[1] < $median) {
                 push @left, $_->[0];
             } else {
                 push @right, $_->[0];
