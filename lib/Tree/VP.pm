@@ -16,9 +16,9 @@ has value => ( is => "rw" );
 has left  => ( is => "rw" );
 has right => ( is => "rw" );
 
-has dist_median => ( is => "rw" );
-has dist_min => ( is => "rw" );
-has dist_max => ( is => "rw" );
+has mu => ( is => "rw" );
+has distance_min => ( is => "rw" );
+has distance_max => ( is => "rw" );
 
 sub BUILD {
     my ($self) = @_;
@@ -27,20 +27,16 @@ sub BUILD {
     $self->value($vp);
     if (@$nodes) {
         my @dist = sort { $a->[1] <=> $b->[1] } map {[$_, $self->distance->($_, $vp)]} @$nodes;
-        my $median = $dist[@dist/2]->[1];
+        my $center = int( $#dist/2 );
+        my $median = (@dist % 2 == 1) ? $dist[$center]->[1] : ($dist[$center]->[1] + $dist[$center+1]->[1])/2;
 
-        $self->dist_min( $dist[0]->[1] );
-        $self->dist_max( $dist[@dist-1]->[1] );
-        $self->dist_median($median);
+        $self->distance_min( $dist[0]->[1] );
+        $self->distance_max( $dist[@dist-1]->[1] );
 
-        my (@left, @right);
-        for (@dist) {
-            if ($_->[1] < $median) {
-                push @left, $_->[0];
-            } else {
-                push @right, $_->[0];
-            }
-        }
+        $self->mu($median);
+        my @left = map { $_->[0] } splice(@dist, 0, $center+1);
+        my @right = map { $_->[0] } @dist;
+
         $self->left(  Tree::VP->new( distance => $self->distance, nodes => \@left )  ) if @left > 0;
         $self->right( Tree::VP->new( distance => $self->distance, nodes => \@right ) ) if @right > 0;
     }
