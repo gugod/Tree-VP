@@ -1,6 +1,5 @@
 package Tree::VP;
 use Moo;
-use Tree::Binary;
 use List::Priority;
 
 has distance => (
@@ -90,9 +89,16 @@ sub search {
     }
 
     if ($is_top_level) {
-        while ( my $x = $pq->shift() ) {
-            push @{$result->{values}}, $x;
+        my @results;
+        while ($pq->size() > 0) {
+            my $d = $pq->lowest_priority;
+            my $x = $pq->shift();
+            push @results, {
+                distance => $d,
+                value    => $x,
+            }
         }
+        $result->{results} = \@results;
     }
     return $result;
 }
@@ -102,7 +108,23 @@ sub search {
 
 __END__
 
-=head1 Tree::VP
+=head1 Name
+
+Tree::VP - Vantage-Point Tree
+
+=head1 Synopsis
+
+A spellchecker.
+
+    my @words = read_file("/usr/share/dict/words", { chomp => 1, binmode => ":utf8" });
+    my $vptree = Tree::VP->new( distance => \&Text::Levenshtein::XS::distance );
+    $vptree->build(\@words);
+
+    my $r = $vptree->search(query => "amstedam", size => 5);
+    say "suggestion: " . join " ", map { $_ . " (" . distance($_, $q) . ")" } @{$r->{values}};
+
+
+=head1 Methods
 
 =over 4
 

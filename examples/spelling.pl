@@ -7,8 +7,8 @@ use Text::Levenshtein::Damerau::XS ();
 use File::Slurp 'read_file';
 
 sub distance {
-    return Text::Levenshtein::XS::distance(@_);
-    # return Text::Levenshtein::Damerau::XS::xs_edistance(@_);
+    # return Text::Levenshtein::XS::distance(@_);
+    return Text::Levenshtein::Damerau::XS::xs_edistance(lc($_[0]), lc($_[1]));
 }
 
 my $dict = shift(@ARGV) || "/usr/share/dict/words";
@@ -30,7 +30,7 @@ while (<>) {
     chomp;
     my $q = $_;
     my $r = $vptree->search(query => $q, size => 5);
-    say "my guess ($comparison comparisons): " . join " ", map { $_ . " (" . distance($_, $q) . ")" } @{$r->{values}};
+    say "my guess ($comparison comparisons): " . join " ", map { "$_->{value} ($_->{distance})" } @{$r->{results}};
     $comparison = 0;
 
     print "you type: ";
