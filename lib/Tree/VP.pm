@@ -54,6 +54,7 @@ sub search {
     my $result = { values => [] };
 
     $args{size} ||= 2;
+    my $is_top_level = !defined($args{__pq});
     my $pq = $args{__pq} ||= List::Priority->new;
     my $v = $self->values->[0];
     my $d = $self->distance->($v, $args{query});
@@ -69,17 +70,26 @@ sub search {
 
     if (defined($self->mu)) {
         my $mu = $self->mu;
-        if ($d + $args{tau} < $mu) {
-            $self->left->search(%args, __not_top_level__ => 1) if $self->left;
-        } elsif ( $d > $mu + $args{tau} ) {
-            $self->right->search(%args, __not_top_level__ => 1) if $self->right;
+        if ($d < $args{tau}) {
+            if ($self->left && $self->distance_min - $args{tau} < $d) {
+                $self->left->search(%args);
+                $args{tau} = $pq->highest_priority;
+            }
+            if ($self->right && $mu - $args{tau} < $d && $d < $self->distance_max + $args{tau}) {
+                $self->right->search(%args);
+            }
         } else {
-            $self->left->search(%args, __not_top_level__ => 1) if $self->left;
-            $self->right->search(%args, __not_top_level__ => 1) if $self->right;
+            if ($self->right && $d < $self->distance_max + $args{tau}) {
+                $self->right->search(%args);
+                $args{tau} = $pq->highest_priority;
+            }
+            if ($self->left && $self->distance_min - $args{tau} < $d && $d < $mu + $args{tau}) {
+                $self->left->search(%args);
+            }
         }
     }
 
-    if (!$args{__not_top_level__}) {
+    if ($is_top_level) {
         while ( my $x = $pq->shift() ) {
             push @{$result->{values}}, $x;
         }
