@@ -26,21 +26,10 @@ sub hamming_distance {
      '0011',
      '0001',
      '1100',
-
-     # 'culture',
-     # 'democracy',
-     # 'metaphor',
-     # 'irony',
-     # 'hypothesis',
-     # 'science',
-     # 'fastuous',
-     # 'integrity',
-     # 'synonym',
-     # 'empathy'
  );
 
  my $t = Tree::VP->new(
-     nodes => \@str,
+     values => \@str,
      distance => \&hamming_distance,
 );
 
