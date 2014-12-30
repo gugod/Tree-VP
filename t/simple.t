@@ -2,9 +2,7 @@
 use strict;
 use warnings;
 
-use Text::Levenshtein 'distance';
 use Data::Dumper;
-use Data::Printer;
 use Tree::VP;
 $Data::Dumper::Sortkeys=1;
 
