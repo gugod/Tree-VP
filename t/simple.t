@@ -24,11 +24,14 @@ sub hamming_distance {
      '0011',
      '0001',
      '1100',
+     '0000',
  );
 
- my $t = Tree::VP->new(
-     values => \@str,
-     distance => \&hamming_distance,
-);
+my $t = Tree::VP->new(distance => \&hamming_distance)->build(\@str);
 
 print Dumper( $t );
+
+my $q = "0010";
+my $r = $t->search( query => $q, size => 3 );
+print Dumper([ $q, $r ]);
+
