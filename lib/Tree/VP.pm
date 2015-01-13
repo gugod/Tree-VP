@@ -130,13 +130,13 @@ A spellchecker.
 
 =item new( distance => sub { ... })
 
-Construct the top-level tree object. The C<distance> function must take 2 arguments that are the 2 values from the
-arrayref passed to C<build> method. It must return a number range from 0 to Inf, with "0" meaning that the 2 values are
-the same, and larger number means that the given 2 values are further away in space.
+Construct the top-level tree object. The C<distance> function must be able to calculate the distance between any 2
+values in the ArrayRef passed to C<build> method. It must return a number range from 0 to Inf. The number "0" meaning
+that the 2 values are the same, and larger number means that the given 2 values are further away in space.
 
 =item build( ArrayRef[ Val ] )
 
-Take a arrayref af values of whatever type that can be handled by the C<distance> function, and build the tree
+Take a ArrayRef of values of whatever type that can be handled by the C<distance> function, and build the tree
 structure.
 
 =item search( query => Val, size => Int )
@@ -145,3 +145,7 @@ Take a "query", which is just a value of whatever type contained in the tree. An
 results of top-K nearest nodes according to the distance function. C<size> means the the upper-bound of result size.
 
 =back
+
+=head1 See Also
+
+L<http://www.wikiwand.com/en/Vantage-point_tree>
