@@ -1,4 +1,7 @@
 package Tree::VP;
+use v5.8;
+our $VERSION = "0.01";
+
 use Moo;
 use List::Priority;
 
@@ -145,3 +148,11 @@ Take a "query", which is just a value of whatever type contained in the tree. An
 results of top-K nearest nodes according to the distance function. C<size> means the the upper-bound of result size.
 
 =back
+
+=head1 Author
+
+Kang-min Liu <gugod@gugod.org>
+
+=head1 License
+
+The MIT License.
