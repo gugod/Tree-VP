@@ -2,9 +2,9 @@
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Test::More;
+
 use Tree::VP;
-$Data::Dumper::Sortkeys=1;
 
 sub hamming_distance {
     my ($str1, $str2) = @_;
@@ -29,9 +29,15 @@ sub hamming_distance {
 
 my $t = Tree::VP->new(distance => \&hamming_distance)->build(\@str);
 
-print Dumper( $t );
-
 my $q = "0010";
 my $r = $t->search( query => $q, size => 3 );
-print Dumper([ $q, $r ]);
 
+my %seen;
+for (@{$r->{results}}) {
+    $seen{ $_->{value} } = $_->{distance};
+}
+
+ok($seen{"0000"} == 1);
+ok($seen{"0011"} == 1 );
+
+done_testing;
