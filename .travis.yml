@@ -10,7 +10,7 @@ perl:
   - "5.20"
   - "5.20-shrplib"
 
-before_install: cpanm --notest Module::Install
+before_install: cpanm --notest Module::Install Module::Install::CPANfile
 
 notifications:
   irc:
