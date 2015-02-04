@@ -14,5 +14,8 @@ makemaker_args(
     }
 );
 
-cpanfile;
+if(-d ".git" && !-f "META.yml") {
+    cpanfile;
+}
+
 WriteAll;
