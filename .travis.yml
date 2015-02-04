@@ -10,7 +10,9 @@ perl:
   - "5.20"
   - "5.20-shrplib"
 
-before_install: cpanm --notest Module::Install Module::Install::CPANfile
+before_install:
+  - yes | perl -MCPAN::FirstTime -e CPAN::FirstTime::init
+  - cpanm --notest --verbose Module::Install Module::Install::CPANfile Devel::Cover Devel::Cover::Report::Coveralls
 
 notifications:
   irc:
