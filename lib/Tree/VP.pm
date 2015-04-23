@@ -151,7 +151,7 @@ results of top-K nearest nodes according to the distance function. C<size> means
 
 =head1 See Also
 
-L<http://www.wikiwand.com/en/Vantage-point_tree>
+L<http://en.wikipedia.org/wiki/Vantage-point_tree>
 
 =head1 Author
 
