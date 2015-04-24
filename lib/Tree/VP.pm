@@ -4,32 +4,46 @@ our $VERSION = "0.01";
 
 use Moo;
 use List::Priority;
+use Tree::DAG_Node;
 
 has distance => (
     is => "ro",
     required => 1,
 );
 
-has values => (is => "rw");
-has left  => ( is => "rw" );
-has right => ( is => "rw" );
-
-has mu => ( is => "rw" );
-has distance_min => ( is => "rw" );
-has distance_max => ( is => "rw" );
+has tree => (
+    is => "rw",
+);
 
 sub build {
     my ($self, $values) = @_;
-    my $vp = shift @$values;
-    my @v = ($vp);
+    $self->tree( $self->_build_tree_maybe($values) ) if @$values;
+    return $self;
+}
+
+sub _build_tree_maybe {
+    my ($self, $values) = @_;
+    my $node;
     if (@$values) {
+        my $vp = shift @$values;
+        my @v = ($vp);
+
+        $node = Tree::DAG_Node->new({
+            name => "$vp",
+            attributes => { vp => $vp }
+        });
+
+        return $node unless @$values;
+
         my @dist = sort { $a->[1] <=> $b->[1] } map {[$_, $self->distance->($_, $vp)]} @$values;
+
         my $center = int( $#dist/2 );
+        my (@left, @right, $min, $max);
+
         my $median = (@dist == 1)
         ? $dist[0][1] : (@dist % 2 == 1)
         ? $dist[$center][1] : ($dist[$center][1] + $dist[$center+1][1])/2;
 
-        my (@left, @right, $min, $max);
         for (@dist) {
             if ($_->[1] == 0) {
                 push @v, $_->[0];
@@ -41,27 +55,50 @@ sub build {
                 $max = $_->[1];
             }
         }
-        $self->mu($median);
-        $self->distance_min( $min );
-        $self->distance_max( $max || $min || 0 );
-        $self->left(  Tree::VP->new( distance => $self->distance)->build( \@left )  ) if @left > 0;
-        $self->right( Tree::VP->new( distance => $self->distance)->build( \@right ) ) if @right > 0;
+
+        $node->attributes->{mu} = $median;
+        $node->attributes->{distance_min} = $min;
+        $node->attributes->{distance_max} = $max || $min || 0;
+
+        if (@left) {
+            if (my $node_left = $self->_build_tree_maybe(\@left)) {
+                $node_left->attributes->{is_left_daughter} = 1;
+                $node->add_daughter( $node_left );
+            }
+        }
+        if (@right) {
+            if (my $node_right = $self->_build_tree_maybe(\@right)) {
+                $node_right->attributes->{is_right_daughter} = 1;
+                $node->add_daughter( $node_right );
+            }
+        }
     }
-    $self->values(\@v);
-    return $self;
+    return $node;
 }
 
 sub search {
-    my ($self, %args)= @_;
+    my ($self, %args) = @_;
+    $args{size} ||= 2;
+    return $self->_search_tree( $self->tree, %args );
+}
+
+sub _search_tree {
+    my ($self, $tree, %args)= @_;
     my $result = { values => [] };
 
-    $args{size} ||= 2;
+    my ($left, $right) = $tree->daughters;
+    if (!$right && $left && $left->{attributes}{is_right_daughter}) {
+        $right = $left;
+        $left = undef;
+    }
+
     my $is_top_level = !defined($args{__pq});
     my $pq = $args{__pq} ||= List::Priority->new;
-    my $v = $self->values->[0];
+
+    my $v = $tree->attributes->{vp};
     my $d = $self->distance->($v, $args{query});
 
-    $args{tau} = $self->distance_max unless defined $args{tau};
+    $args{tau} = $tree->attributes->{distance_max} unless defined $args{tau};
     if ($d < $args{tau}) {
         $pq->insert($d, $v);
         if ($pq->size() > $args{size}) {
@@ -70,23 +107,23 @@ sub search {
         }
     }
 
-    if (defined($self->mu)) {
-        my $mu = $self->mu;
+    if (defined($tree->attributes->{mu})) {
+        my $mu = $tree->attributes->{mu};
         if ($d < $args{tau}) {
-            if ($self->left && $self->distance_min - $args{tau} < $d) {
-                $self->left->search(%args);
+            if ($left && $tree->attributes->{distance_min} - $args{tau} < $d) {
+                $self->_search_tree($left, %args);
                 $args{tau} = $pq->highest_priority;
             }
-            if ($self->right && $mu - $args{tau} < $d && $d < $self->distance_max + $args{tau}) {
-                $self->right->search(%args);
+            if ($right && $mu - $args{tau} < $d && $d < $tree->attributes->{distance_max} + $args{tau}) {
+                $self->_search_tree($right, %args);
             }
         } else {
-            if ($self->right && $d < $self->distance_max + $args{tau}) {
-                $self->right->search(%args);
+            if ($right && $d < $tree->attributes->{distance_max} + $args{tau}) {
+                $self->_search_tree($right, %args);
                 $args{tau} = $pq->highest_priority;
             }
-            if ($self->left && $self->distance_min - $args{tau} < $d && $d < $mu + $args{tau}) {
-                $self->left->search(%args);
+            if ($left && $tree->attributes->{distance_min} - $args{tau} < $d && $d < $mu + $args{tau}) {
+                $self->_search_tree($left, %args);
             }
         }
     }
