@@ -150,7 +150,7 @@ __END__
 
 =head1 Name
 
-Tree::VP - Vantage-Point Tree
+Tree::VP - Vantage-Point Tree builder and searcher.
 
 =head1 Synopsis
 
@@ -183,6 +183,30 @@ structure.
 
 Take a "query", which is just a value of whatever type contained in the tree. And return HashRef that contains the
 results of top-K nearest nodes according to the distance function. C<size> means the the upper-bound of result size.
+
+=item tree() (a public attribute)
+
+This points to the underlying tree data structure, which is an
+instance of L<Tree::DAG_Node> . Since the creation process of VP trees
+is expensive, it is desired to be able to store the tree structure and
+re-use the stored state. To achieve this, do something like this:
+
+    # Storing
+    my $vptree = Tree::VP->new( distance => \&distance );
+    $vptree->build(\@words);
+    write_file("/db/tree_stored.db", freeze($vptree->tree));
+
+    # Loading and use
+    my $tree =  unfreeze(read_file("/db/tree_stored.db"));
+    my $vptree = Tree::VP->new( tree => $tree, distance => \&distance );
+    $vptree->search(...);
+
+Since we use L<Tree::DAG_Node> objects, the C<freeze> and C<unfreeze>
+subroutine here needs be able to serealize and unserealize perl
+objects.  L<Sereal> is a good choice, but basically any subroutines
+that can convert L<Tree::DAG_Node> objects to string and back, can be
+used. Obviously, the distance function must be the same in order to
+produce valid response.
 
 =back
 
