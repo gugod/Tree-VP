@@ -1,6 +1,6 @@
 package Tree::VP;
 use v5.8;
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 use Moo;
 use List::Priority;
