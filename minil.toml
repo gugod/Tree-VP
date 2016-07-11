@@ -1,0 +1,4 @@
+name="Tree-VP"
+authority="cpan:GUGOD"
+license="mit"
+badges = ['travis', 'coveralls']
